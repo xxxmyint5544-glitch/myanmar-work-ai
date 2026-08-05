@@ -4,16 +4,21 @@
 async function loadDashboard() {
   const today = todayISO();
   const todaySales = await DB.salesBetween(today, today);
+  const todayExpenses = await DB.expensesBetween(today, today);
 
-  const todayTotal = todaySales.reduce((s, r) => s + (r.total || 0), 0);
+  const totals = await DB.salesTotalsByPayment(today, today);
+  const todayTotal = totals.all;
   const todayCost = todaySales.reduce((sum, sale) => {
     return sum + sale.items.reduce((s, l) => s + (l.cost || 0) * l.qty, 0);
   }, 0);
-  const todayProfit = todayTotal - todayCost;
+  const expenseTotal = todayExpenses.reduce((s, e) => s + (e.amount || 0), 0);
+  const todayProfit = todayTotal - todayCost - expenseTotal;
 
   document.getElementById('ledgerAmount').textContent = Utils.kyat(todayTotal);
-  document.getElementById('miniProfit').textContent = Utils.kyat(todayProfit);
-  document.getElementById('miniCount').textContent = todaySales.length + ' စာရင်း';
+  document.getElementById('miniCash').textContent = Utils.num(totals.cash);
+  document.getElementById('miniCredit').textContent = Utils.num(totals.credit);
+  document.getElementById('miniExpense').textContent = Utils.num(expenseTotal);
+  document.getElementById('miniProfit').textContent = Utils.num(todayProfit);
 
   const receivable = await DB.totalCreditOutstanding('receivable');
   const payable = await DB.totalCreditOutstanding('payable');
@@ -65,6 +70,74 @@ function renderRecentSales(sales) {
     </div>`).join('');
 }
 
+/* ---------- expense entry ---------- */
+
+let selectedExpenseCategory = null;
+
+async function renderCategoryChips() {
+  const cats = await DB.expenseCategories();
+  if (!selectedExpenseCategory || !cats.includes(selectedExpenseCategory)) {
+    selectedExpenseCategory = cats[0] || null;
+  }
+  const el = document.getElementById('expenseCategoryChips');
+  el.innerHTML = cats.map(c => `
+    <button type="button" class="chip" data-cat="${Utils.escapeHtml(c)}" style="${c === selectedExpenseCategory ? 'background:var(--ink-teal);color:#fff;' : ''}">
+      ${Utils.escapeHtml(c)} <span data-del="${Utils.escapeHtml(c)}" style="margin-left:4px;opacity:0.7;">✕</span>
+    </button>`).join('');
+
+  el.querySelectorAll('button[data-cat]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      if (e.target.dataset.del) {
+        e.stopPropagation();
+        removeCategory(e.target.dataset.del);
+        return;
+      }
+      selectedExpenseCategory = btn.dataset.cat;
+      renderCategoryChips();
+    });
+  });
+}
+
+async function removeCategory(name) {
+  const cats = await DB.expenseCategories();
+  if (cats.length <= 1) { Utils.toast('အနည်းဆုံး အမျိုးအစားတစ်ခု ကျန်ရှိရပါမည်'); return; }
+  if (!confirm(`"${name}" ကို ဖျက်မလား?`)) return;
+  await DB.removeExpenseCategory(name);
+  renderCategoryChips();
+}
+
+async function addNewCategory() {
+  const input = document.getElementById('newCategoryInput');
+  const name = input.value.trim();
+  if (!name) return;
+  await DB.addExpenseCategory(name);
+  selectedExpenseCategory = name;
+  input.value = '';
+  renderCategoryChips();
+}
+
+function openExpenseSheet() {
+  document.getElementById('expenseAmount').value = '';
+  document.getElementById('expenseNote').value = '';
+  renderCategoryChips();
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('expenseSheet').style.display = 'block';
+}
+
+async function saveExpense() {
+  const amount = Number(document.getElementById('expenseAmount').value) || 0;
+  if (amount <= 0) { Utils.toast('ပမာဏ ထည့်ပါ'); return; }
+  if (!selectedExpenseCategory) { Utils.toast('အမျိုးအစား ရွေးပါ'); return; }
+  await DB.addExpense({
+    category: selectedExpenseCategory,
+    amount,
+    note: document.getElementById('expenseNote').value.trim()
+  });
+  Utils.toast('သုံးစရိတ် သိမ်းဆည်းပြီးပါပြီ ✅');
+  Utils.closeSheets();
+  loadDashboard();
+}
+
 async function handleQuickAsk() {
   const input = document.getElementById('quickAsk');
   const q = input.value.trim();
@@ -82,4 +155,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('quickAsk').addEventListener('keydown', e => {
     if (e.key === 'Enter') handleQuickAsk();
   });
+
+  document.getElementById('addExpenseBtn').addEventListener('click', openExpenseSheet);
+  document.getElementById('cancelExpenseBtn').addEventListener('click', Utils.closeSheets);
+  document.getElementById('saveExpenseBtn').addEventListener('click', saveExpense);
+  document.getElementById('addCategoryBtn').addEventListener('click', addNewCategory);
+  document.getElementById('newCategoryInput').addEventListener('keydown', e => { if (e.key === 'Enter') addNewCategory(); });
+  document.getElementById('overlay').addEventListener('click', Utils.closeSheets);
 });

@@ -5,14 +5,17 @@
    later without changing how pages call these functions. */
 
 const DB_NAME = 'myanmarWorkAI';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const STORES = {
   inventory: 'id',
   sales: 'id',
   credits: 'id',
+  expenses: 'id',
   settings: 'key'
 };
+
+const DEFAULT_EXPENSE_CATEGORIES = ['ကားခ', 'သုံးစရိတ်', 'ဆိုင်ခ', 'လျှပ်စစ်ခ', 'အခြား'];
 
 let _dbPromise = null;
 
@@ -36,6 +39,11 @@ function openDB() {
         const s = db.createObjectStore('credits', { keyPath: 'id' });
         s.createIndex('type', 'type', { unique: false });
         s.createIndex('status', 'status', { unique: false });
+      }
+      if (!db.objectStoreNames.contains('expenses')) {
+        const s = db.createObjectStore('expenses', { keyPath: 'id' });
+        s.createIndex('date', 'date', { unique: false });
+        s.createIndex('category', 'category', { unique: false });
       }
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings', { keyPath: 'key' });
@@ -107,6 +115,7 @@ const DB = {
   async addSale(sale) {
     sale.id = sale.id || DB.newId();
     sale.date = sale.date || todayISO();
+    sale.paymentType = sale.paymentType || 'cash'; // 'cash' | 'credit'
     await DB.put('sales', sale);
     // decrement stock for each line item
     for (const line of sale.items) {
@@ -117,12 +126,68 @@ const DB = {
         await DB.put('inventory', item);
       }
     }
+    // credit sale → automatically log a receivable so it shows up in the credit list
+    if (sale.paymentType === 'credit' && sale.customer) {
+      await DB.put('credits', {
+        id: DB.newId(),
+        direction: 'receivable',
+        type: 'customer',
+        person: sale.customer,
+        amount: sale.total,
+        paidAmount: 0,
+        dueDate: '',
+        note: `ပစ္စည်းအရောင်း အကြွေး (ရောင်းအား မှတ်တမ်းနှင့် ချိတ်ဆက်)`,
+        status: 'ဆိုင်ရာ',
+        history: [],
+        linkSaleId: sale.id,
+        createdAt: Date.now()
+      });
+    }
     return sale;
   },
 
   async salesBetween(startISO, endISO) {
     const all = await DB.getAll('sales');
     return all.filter(s => s.date >= startISO && s.date <= endISO);
+  },
+
+  async salesTotalsByPayment(startISO, endISO) {
+    const rows = await DB.salesBetween(startISO, endISO);
+    let cash = 0, credit = 0;
+    rows.forEach(s => {
+      if (s.paymentType === 'credit') credit += s.total; else cash += s.total;
+    });
+    return { cash, credit, all: cash + credit, count: rows.length };
+  },
+
+  /* ---- expenses ---- */
+  async addExpense(exp) {
+    exp.id = exp.id || DB.newId();
+    exp.date = exp.date || todayISO();
+    exp.createdAt = exp.createdAt || Date.now();
+    await DB.put('expenses', exp);
+    return exp;
+  },
+
+  async expensesBetween(startISO, endISO) {
+    const all = await DB.getAll('expenses');
+    return all.filter(e => e.date >= startISO && e.date <= endISO);
+  },
+
+  async expenseCategories() {
+    return DB.getSetting('expenseCategories', DEFAULT_EXPENSE_CATEGORIES.slice());
+  },
+  async addExpenseCategory(name) {
+    const cats = await DB.expenseCategories();
+    if (!cats.includes(name)) cats.push(name);
+    await DB.setSetting('expenseCategories', cats);
+    return cats;
+  },
+  async removeExpenseCategory(name) {
+    let cats = await DB.expenseCategories();
+    cats = cats.filter(c => c !== name);
+    await DB.setSetting('expenseCategories', cats);
+    return cats;
   },
 
   async lowStockItems() {

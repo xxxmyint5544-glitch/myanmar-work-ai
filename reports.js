@@ -34,7 +34,10 @@ async function loadReport() {
   document.getElementById('reportRangeLabel').textContent = label + ` (${Utils.dateLabel(start)} — ${Utils.dateLabel(end)})`;
 
   const total = reportRows.reduce((s, r) => s + r.total, 0);
-  const cost = reportRows.reduce((sum, sale) => sum + sale.items.reduce((s,l) => s + (l.cost||0)*l.qty, 0), 0);
+  const cogs = reportRows.reduce((sum, sale) => sum + sale.items.reduce((s,l) => s + (l.cost||0)*l.qty, 0), 0);
+  const expenseRows = await DB.expensesBetween(start, end);
+  const expenseTotal = expenseRows.reduce((s, e) => s + e.amount, 0);
+  const cost = cogs + expenseTotal;
   document.getElementById('reportTotal').textContent = Utils.kyat(total);
   document.getElementById('reportCost').textContent = Utils.num(cost);
   document.getElementById('reportProfit').textContent = Utils.num(total - cost);

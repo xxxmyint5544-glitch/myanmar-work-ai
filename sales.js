@@ -5,6 +5,7 @@ let cart = [];
 let currentTab = 'today';
 let inventoryCache = [];
 let activeSaleForInvoice = null;
+let currentPaymentType = 'cash';
 
 async function populateItemPicker() {
   inventoryCache = await DB.getAll('inventory');
@@ -82,6 +83,11 @@ window.removeCartLine = removeCartLine;
 
 async function saveSale() {
   if (!cart.length) { Utils.toast('ပစ္စည်း အနည်းဆုံး တစ်ခု ထည့်ပါ'); return; }
+  const customer = document.getElementById('saleCustomer').value.trim();
+  if (currentPaymentType === 'credit' && !customer) {
+    Utils.toast('အကြွေးယူသူ နာမည် ထည့်ပါ');
+    return;
+  }
   const total = cart.reduce((s, l) => s + l.qty * l.price, 0);
   const sale = {
     id: DB.newId(),
@@ -89,20 +95,31 @@ async function saveSale() {
     createdAt: Date.now(),
     items: cart.map(l => ({ itemId: l.itemId, name: l.name, qty: l.qty, price: l.price, cost: l.cost })),
     total,
+    paymentType: currentPaymentType,
+    customer: currentPaymentType === 'credit' ? customer : '',
     note: document.getElementById('saleNote').value.trim()
   };
   await DB.addSale(sale);
-  Utils.toast('ရောင်းအား သိမ်းဆည်းပြီးပါပြီ ✅');
+  Utils.toast(currentPaymentType === 'credit' ? 'ရောင်းအားနှင့် အကြွေး သိမ်းဆည်းပြီးပါပြီ ✅' : 'ရောင်းအား သိမ်းဆည်းပြီးပါပြီ ✅');
   cart = [];
   document.getElementById('saleNote').value = '';
+  document.getElementById('saleCustomer').value = '';
   Utils.closeSheets();
   loadSalesList();
+}
+
+function setPaymentType(type) {
+  currentPaymentType = type;
+  document.querySelectorAll('#paymentTypeTabs button').forEach(b => b.classList.toggle('active', b.dataset.pay === type));
+  document.getElementById('customerField').style.display = type === 'credit' ? 'block' : 'none';
 }
 
 function openSaleSheet() {
   cart = [];
   renderCart();
   populateItemPicker();
+  setPaymentType('cash');
+  document.getElementById('saleCustomer').value = '';
   document.getElementById('overlay').classList.add('open');
   document.getElementById('saleSheet').style.display = 'block';
 }
@@ -129,7 +146,11 @@ async function loadSalesList() {
                        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
   const total = filtered.reduce((s, r) => s + r.total, 0);
+  const cash = filtered.filter(s => s.paymentType !== 'credit').reduce((s, r) => s + r.total, 0);
+  const credit = filtered.filter(s => s.paymentType === 'credit').reduce((s, r) => s + r.total, 0);
   document.getElementById('periodTotal').textContent = Utils.kyat(total);
+  document.getElementById('periodCash').textContent = Utils.num(cash);
+  document.getElementById('periodCredit').textContent = Utils.num(credit);
 
   const el = document.getElementById('salesList');
   if (!filtered.length) {
@@ -138,12 +159,12 @@ async function loadSalesList() {
   }
   el.innerHTML = filtered.map(s => `
     <div class="row-item" onclick="showInvoice('${s.id}')" style="cursor:pointer;">
-      <div class="swatch">🧾</div>
+      <div class="swatch ${s.paymentType === 'credit' ? 'warn' : ''}">${s.paymentType === 'credit' ? '🤝' : '🧾'}</div>
       <div class="main">
-        <div class="t1">${Utils.dateLabel(s.date)} · ${s.items.length} မျိုး</div>
-        <div class="t2">${Utils.escapeHtml(s.note || '')}</div>
+        <div class="t1">${Utils.dateLabel(s.date)} · ${s.items.length} မျိုး ${s.paymentType === 'credit' ? `<span class="badge low">အကြွေး</span>` : ''}</div>
+        <div class="t2">${Utils.escapeHtml(s.customer ? 'အကြွေးယူသူ — ' + s.customer : (s.note || ''))}</div>
       </div>
-      <div class="amt pos">+${Utils.num(s.total)}</div>
+      <div class="amt ${s.paymentType === 'credit' ? 'neg' : 'pos'}">+${Utils.num(s.total)}</div>
     </div>`).join('');
 }
 
@@ -153,7 +174,10 @@ async function showInvoice(id) {
   activeSaleForInvoice = sale;
   const body = document.getElementById('invoiceBody');
   body.innerHTML = `
-    <div class="small muted">${Utils.dateLabel(sale.date)}</div>
+    <div class="flex-between">
+      <div class="small muted">${Utils.dateLabel(sale.date)}</div>
+      ${sale.paymentType === 'credit' ? `<span class="badge low">🤝 အကြွေး — ${Utils.escapeHtml(sale.customer||'')}</span>` : `<span class="badge ok">💵 လက်ငင်း</span>`}
+    </div>
     <div class="stitch mt-8" style="margin-bottom:10px;"></div>
     ${sale.items.map(l => `
       <div class="row-item">
@@ -188,6 +212,12 @@ async function deleteActiveSale() {
     }
   }
   await DB.delete('sales', activeSaleForInvoice.id);
+  // also remove the auto-created credit record for this sale, if any
+  if (activeSaleForInvoice.paymentType === 'credit') {
+    const allCredits = await DB.getAll('credits');
+    const linked = allCredits.find(c => c.linkSaleId === activeSaleForInvoice.id);
+    if (linked) await DB.delete('credits', linked.id);
+  }
   Utils.toast('ဖျက်ပြီးပါပြီ');
   Utils.closeSheets();
   loadSalesList();
@@ -206,13 +236,17 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('deleteSaleBtn').addEventListener('click', deleteActiveSale);
   document.getElementById('printInvoiceBtn').addEventListener('click', () => window.print());
 
-  document.querySelectorAll('.tabs button').forEach(btn => {
+  document.querySelectorAll('.page > .tabs > button').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.page > .tabs > button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentTab = btn.dataset.tab;
       loadSalesList();
     });
+  });
+
+  document.querySelectorAll('#paymentTypeTabs button').forEach(btn => {
+    btn.addEventListener('click', () => setPaymentType(btn.dataset.pay));
   });
 
   loadSalesList();

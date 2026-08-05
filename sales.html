@@ -28,6 +28,11 @@
         </div>
         <button class="btn btn-primary" id="newSaleBtn">+ ရောင်းအားအသစ်</button>
       </div>
+      <div class="stitch mt-12" style="margin-bottom:12px;"></div>
+      <div class="flex-between">
+        <span class="small muted">💵 လက်ငင်း — <b id="periodCash" style="color:var(--jade);font-family:var(--font-num);">0</b></span>
+        <span class="small muted">🤝 အကြွေး — <b id="periodCredit" style="color:var(--coral);font-family:var(--font-num);">0</b></span>
+      </div>
     </div>
 
     <div class="section-title"><span>🧾 ရောင်းအားမှတ်တမ်း</span></div>
@@ -72,6 +77,19 @@
   </div>
 
   <div class="field mt-12">
+    <label>ငွေပေးချေပုံ</label>
+    <div class="tabs" id="paymentTypeTabs" style="margin-bottom:0;">
+      <button type="button" class="active" data-pay="cash">💵 လက်ငင်း</button>
+      <button type="button" data-pay="credit">🤝 အကြွေး</button>
+    </div>
+  </div>
+
+  <div class="field" id="customerField" style="display:none;">
+    <label>အကြွေးယူသူ နာမည်</label>
+    <input type="text" id="saleCustomer" placeholder="ဥပမာ — မောင်အောင်">
+  </div>
+
+  <div class="field">
     <label>မှတ်ချက် (မဖြစ်မနေ မလို)</label>
     <input type="text" id="saleNote" placeholder="ဥပမာ — မောင်အောင်ကို ရောင်းသည်">
   </div>

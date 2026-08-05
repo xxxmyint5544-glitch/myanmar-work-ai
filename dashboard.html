@@ -22,15 +22,25 @@
       <div class="amount" id="ledgerAmount">0 ကျပ်</div>
       <div class="ledger-grid">
         <div class="ledger-mini">
-          <div class="l">ယနေ့ အမြတ်</div>
-          <div class="v" id="miniProfit">0 ကျပ်</div>
+          <div class="l">💵 လက်ငင်း</div>
+          <div class="v" id="miniCash">0</div>
         </div>
         <div class="ledger-mini">
-          <div class="l">ငွေတောင်းခံလွှာ</div>
-          <div class="v" id="miniCount">0 စာရင်း</div>
+          <div class="l">🤝 အကြွေး</div>
+          <div class="v" id="miniCredit">0</div>
+        </div>
+        <div class="ledger-mini">
+          <div class="l">💸 အသုံးစရိတ်</div>
+          <div class="v" id="miniExpense">0</div>
+        </div>
+        <div class="ledger-mini">
+          <div class="l">📈 အသားတင်အမြတ်</div>
+          <div class="v" id="miniProfit">0</div>
         </div>
       </div>
     </div>
+
+    <button class="btn btn-outline btn-block mt-12" id="addExpenseBtn">💸 ယနေ့ အသုံးစရိတ် ထည့်ရန်</button>
 
     <div class="stat-row mt-16">
       <div class="stat">
@@ -75,6 +85,35 @@
   </div>
 
   <a href="sales.html" class="fab" title="ရောင်းအားထည့်ရန်">+</a>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="expenseSheet" style="display:none;">
+  <div class="handle"></div>
+  <div class="sheet-title">သုံးစရိတ် ထည့်ရန်</div>
+
+  <div class="field">
+    <label>အမျိုးအစား</label>
+    <div class="chip-row" id="expenseCategoryChips"></div>
+    <div class="flex gap-8 mt-8">
+      <input type="text" id="newCategoryInput" placeholder="အမျိုးအစားအသစ် ထည့်ရန်..." style="flex:1;padding:9px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--paper-raised);color:var(--ink);font-size:13px;">
+      <button class="btn btn-outline" id="addCategoryBtn" style="min-height:38px;padding:8px 14px;font-size:13px;">+ ထည့်</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>ပမာဏ</label>
+    <input type="number" id="expenseAmount" min="0" placeholder="0">
+  </div>
+  <div class="field">
+    <label>မှတ်ချက် (မဖြစ်မနေ မလို)</label>
+    <input type="text" id="expenseNote" placeholder="ဥပမာ — ဆိုင်ပစ္စည်း သယ်ယူခ">
+  </div>
+
+  <div class="flex gap-8 mt-12">
+    <button class="btn btn-outline grow" id="cancelExpenseBtn">ပယ်ဖျက်မည်</button>
+    <button class="btn btn-primary grow" id="saveExpenseBtn">သိမ်းဆည်းမည်</button>
+  </div>
 </div>
 
 <script src="db.js"></script>

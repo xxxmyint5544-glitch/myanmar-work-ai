@@ -54,10 +54,42 @@ async function findItemByFuzzyName(query) {
 
 async function handleTodaySales() {
   const today = todayISO();
-  const sales = await DB.salesBetween(today, today);
-  const total = sales.reduce((s, r) => s + r.total, 0);
-  if (!sales.length) return `ယနေ့အတွက် ရောင်းအားမှတ်တမ်း <b>မရှိသေးပါ</b>။`;
-  return `ယနေ့ (${Utils.todayLabel()}) ရောင်းအားစုစုပေါင်း <b>${Utils.kyat(total)}</b> ဖြစ်ပါသည်။ (စာရင်း ${sales.length} ခု)`;
+  const totals = await DB.salesTotalsByPayment(today, today);
+  if (!totals.count) return `ယနေ့အတွက် ရောင်းအားမှတ်တမ်း <b>မရှိသေးပါ</b>။`;
+  return `ယနေ့ (${Utils.todayLabel()}) ရောင်းအားစုစုပေါင်း <b>${Utils.kyat(totals.all)}</b> ဖြစ်ပါသည် — 💵 လက်ငင်း ${Utils.num(totals.cash)}, 🤝 အကြွေး ${Utils.num(totals.credit)} (စာရင်း ${totals.count} ခု)`;
+}
+
+async function handleTodayCash() {
+  const today = todayISO();
+  const totals = await DB.salesTotalsByPayment(today, today);
+  return `ယနေ့ လက်ငင်းရောင်းအား <b>${Utils.kyat(totals.cash)}</b> ဖြစ်ပါသည်။`;
+}
+
+async function handleTodayCreditSales() {
+  const today = todayISO();
+  const totals = await DB.salesTotalsByPayment(today, today);
+  return `ယနေ့ အကြွေးဖြင့် ရောင်းချသည့် ပမာဏ <b>${Utils.kyat(totals.credit)}</b> ဖြစ်ပါသည်။`;
+}
+
+async function handleExpenseQuery() {
+  const today = todayISO();
+  const rows = await DB.expensesBetween(today, today);
+  const total = rows.reduce((s, e) => s + e.amount, 0);
+  if (!rows.length) return `ယနေ့အတွက် အသုံးစရိတ် <b>မှတ်တမ်း မရှိသေးပါ</b>။`;
+  const byCat = {};
+  rows.forEach(e => { byCat[e.category] = (byCat[e.category]||0) + e.amount; });
+  const lines = Object.entries(byCat).map(([c,v]) => `• ${Utils.escapeHtml(c)} — ${Utils.num(v)}`).join('<br>');
+  return `ယနေ့ အသုံးစရိတ် စုစုပေါင်း <b>${Utils.kyat(total)}</b> —<br>${lines}`;
+}
+
+async function handleAddExpense(text) {
+  const amount = extractAmount(text);
+  if (!amount) return `ပမာဏကို ရှင်းရှင်းလင်းလင်း ပြောပြပါ။ ဥပမာ — "ကားခ ၅၀၀၀ ထည့်"`;
+  const cats = await DB.expenseCategories();
+  const found = cats.find(c => text.includes(c));
+  const category = found || cats[cats.length - 1] || 'အခြား';
+  await DB.addExpense({ category, amount, note: 'AI မှတဆင့် ထည့်သွင်းသည်' });
+  return `<b>${Utils.escapeHtml(category)}</b> အသုံးစရိတ် <b>${Utils.kyat(amount)}</b> ထည့်သွင်းပြီးပါပြီ ✅`;
 }
 
 async function handleWeekSales() {
@@ -133,24 +165,30 @@ async function routeCommand(raw) {
   const text = raw.trim();
   const lower = text;
 
+  // credit / expense additions must be checked before the generic sales-total rules
+  if (/အကြွေးထည့်|အကြွေးတင်|ကြွေးထည့်/.test(lower)) return handleAddCredit(text);
+  if (/(ကားခ|သုံးစရိတ်|ဆိုင်ခ|လျှပ်စစ်ခ)\s*.*ထည့်/.test(lower)) return handleAddExpense(text);
+
+  if (/ဒီနေ့/.test(lower) && /လက်ငင်း/.test(lower)) return handleTodayCash();
+  if (/ဒီနေ့/.test(lower) && /အကြွေး/.test(lower) && /ရောင်း/.test(lower)) return handleTodayCreditSales();
   if (/ဒီနေ့/.test(lower) && /ရောင်းအား|အရောင်း/.test(lower)) return handleTodaySales();
   if (/ဒီအပတ်|၇ ?ရက်/.test(lower) && /ရောင်းအား|အရောင်း/.test(lower)) return handleWeekSales();
   if (/ဒီလ/.test(lower) && (/အမြတ်|report|ရောင်းအား/.test(lower))) return handleMonthProfit();
   if (/အမြတ်/.test(lower)) return handleMonthProfit();
 
+  if (/အသုံးစရိတ်|ကားခ/.test(lower) && /ဘယ်လောက်|ဘယ်နှစ်|report|ပြ/.test(lower)) return handleExpenseQuery();
+
   if (/ရရန်.*အကြွေး|အကြွေး.*ရရန်/.test(lower)) return handleReceivableTotal();
   if (/ပေးရန်.*အကြွေး|အကြွေး.*ပေးရန်/.test(lower)) return handlePayableTotal();
-
-  if (/အကြွေးထည့်|အကြွေးတင်|ကြွေးထည့်/.test(lower)) return handleAddCredit(text);
 
   if (/stock ?နည်း|ကုန်တော့|ကုန်နီးပြီ/.test(lower)) return handleLowStock();
   if (/stock|ကျန်|လက်ကျန်/.test(lower)) return handleStockQuery(text);
 
   if (/မင်္ဂလာပါ|ဟယ်လို|hello|hi\b/i.test(lower)) {
-    return `မင်္ဂလာပါ! ကျွန်တော် ကူညီပေးနိုင်တာတွေက — ယနေ့/အပတ်စဉ် ရောင်းအားတွက်ခြင်း၊ ပစ္စည်း stock စစ်ခြင်း၊ အကြွေးထည့်ခြင်း၊ အမြတ် report ကြည့်ခြင်း တို့ပါ။ အောက်က ဥပမာလေးတွေကို နှိပ်ကြည့်နိုင်ပါတယ်။`;
+    return `မင်္ဂလာပါ! ကျွန်တော် ကူညီပေးနိုင်တာတွေက — ယနေ့/အပတ်စဉ် ရောင်းအားတွက်ခြင်း (လက်ငင်း/အကြွေး ခွဲပြနိုင်)၊ ပစ္စည်း stock စစ်ခြင်း၊ အကြွေးထည့်ခြင်း၊ အသုံးစရိတ်မှတ်ခြင်း၊ အမြတ် report ကြည့်ခြင်း တို့ပါ။ အောက်က ဥပမာလေးတွေကို နှိပ်ကြည့်နိုင်ပါတယ်။`;
   }
 
-  return `ဒီစာကို ရှင်းရှင်းလင်းလင်း နားမလည်သေးပါ 🙏 ဥပမာများ — "ဒီနေ့ရောင်းအားတွက်ပေး"၊ "ဆန်အိတ် stock ဘယ်လောက်ကျန်လဲ"၊ "မောင်အောင်ကို ၅၀,၀၀၀ အကြွေးထည့်"၊ "ဒီလ အမြတ် report ပြ"`;
+  return `ဒီစာကို ရှင်းရှင်းလင်းလင်း နားမလည်သေးပါ 🙏 ဥပမာများ — "ဒီနေ့ လက်ငင်း ဘယ်လောက်ရလဲ"၊ "ဆန်အိတ် stock ဘယ်လောက်ကျန်လဲ"၊ "မောင်အောင်ကို ၅၀,၀၀၀ အကြွေးထည့်"၊ "ကားခ ၅၀၀၀ ထည့်"၊ "ဒီလ အမြတ် report ပြ"`;
 }
 
 /* ---------- chat UI ---------- */
