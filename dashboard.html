@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#0F3D3E">
+<title>ပင်မစာမျက်နှာ — မြန်မာလုပ်ငန်းကူ AI</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="page">
+    <div class="small muted" id="dateLabel">—</div>
+
+    <div class="ledger mt-8">
+      <div class="label">ယနေ့ ရောင်းအား</div>
+      <div class="amount" id="ledgerAmount">0 ကျပ်</div>
+      <div class="ledger-grid">
+        <div class="ledger-mini">
+          <div class="l">ယနေ့ အမြတ်</div>
+          <div class="v" id="miniProfit">0 ကျပ်</div>
+        </div>
+        <div class="ledger-mini">
+          <div class="l">ငွေတောင်းခံလွှာ</div>
+          <div class="v" id="miniCount">0 စာရင်း</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-row mt-16">
+      <div class="stat">
+        <div class="l">ရရန် အကြွေး</div>
+        <div class="v" id="statReceivable">0</div>
+      </div>
+      <div class="stat warn">
+        <div class="l">ပေးရန် အကြွေး</div>
+        <div class="v" id="statPayable">0</div>
+      </div>
+      <div class="stat gold">
+        <div class="l">ပစ္စည်းအမျိုးအစား</div>
+        <div class="v" id="statStock">0</div>
+      </div>
+      <div class="stat warn">
+        <div class="l">Stock နည်းနေသော</div>
+        <div class="v" id="statLow">0</div>
+      </div>
+    </div>
+
+    <div class="section-title">
+      <span>✨ AI ကို မေးမြန်းပါ</span>
+    </div>
+    <div class="card">
+      <div class="flex gap-8">
+        <input id="quickAsk" type="text" placeholder="ဥပမာ — ဒီနေ့ ရောင်းအားတွက်ပေး" style="flex:1;border:1.5px solid var(--line);border-radius:10px;padding:12px 13px;background:var(--paper);color:var(--ink);font-size:14.5px;">
+        <button class="btn btn-gold" id="quickAskBtn" style="min-height:44px;padding:10px 16px;">မေးမည်</button>
+      </div>
+    </div>
+
+    <div class="section-title">
+      <span>⚠️ Stock နည်းနေသော ပစ္စည်း</span>
+      <a class="link" href="inventory.html">အားလုံးကြည့်ရန်</a>
+    </div>
+    <div class="card" id="lowStockList"></div>
+
+    <div class="section-title">
+      <span>🧾 ယနေ့ ရောင်းအားမှတ်တမ်း</span>
+      <a class="link" href="sales.html">အားလုံးကြည့်ရန်</a>
+    </div>
+    <div class="card" id="recentSalesList"></div>
+  </div>
+
+  <a href="sales.html" class="fab" title="ရောင်းအားထည့်ရန်">+</a>
+</div>
+
+<script src="db.js"></script>
+<script src="utils.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

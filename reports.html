@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F3D3E">
+<title>Report — မြန်မာလုပ်ငန်းကူ AI</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="page">
+    <div class="tabs">
+      <button class="active" data-range="day">နေ့စဉ်</button>
+      <button data-range="week">အပတ်စဉ်</button>
+      <button data-range="month">လစဉ်</button>
+    </div>
+
+    <div class="ledger">
+      <div class="label" id="reportRangeLabel">ယနေ့</div>
+      <div class="amount" id="reportTotal">0 ကျပ်</div>
+      <div class="ledger-grid">
+        <div class="ledger-mini">
+          <div class="l">ကုန်ကျစရိတ်</div>
+          <div class="v" id="reportCost">0</div>
+        </div>
+        <div class="ledger-mini">
+          <div class="l">အသားတင်အမြတ်</div>
+          <div class="v" id="reportProfit">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-8 mt-16">
+      <button class="btn btn-outline grow" id="exportPdfBtn">📄 PDF ဖြစ်အောင် Export</button>
+      <button class="btn btn-outline grow" id="exportExcelBtn">📊 Excel ဖြစ်အောင် Export</button>
+    </div>
+
+    <div class="section-title"><span>🏆 အရောင်းရဆုံး ပစ္စည်းများ</span></div>
+    <div class="card" id="topItemsList"></div>
+
+    <div class="section-title"><span>🧾 ရောင်းအားစာရင်းများ</span></div>
+    <div class="card" id="reportSalesList"></div>
+  </div>
+</div>
+
+<script src="db.js"></script>
+<script src="utils.js"></script>
+<script src="reports.js"></script>
+</body>
+</html>

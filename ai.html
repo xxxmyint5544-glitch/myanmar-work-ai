@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F3D3E">
+<title>AI လုပ်ငန်းကူ — မြန်မာလုပ်ငန်းကူ AI</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="page" style="padding-bottom:110px;">
+    <div class="chip-row" id="suggestChips">
+      <button class="chip">ဒီနေ့ ရောင်းအားတွက်ပေး</button>
+      <button class="chip">ဆန်အိတ် stock ဘယ်လောက်ကျန်လဲ</button>
+      <button class="chip">ဒီလ အမြတ် report ပြ</button>
+      <button class="chip">ရရန်အကြွေး ဘယ်လောက်ရှိလဲ</button>
+    </div>
+
+    <div class="chat-wrap" id="chatWrap">
+      <div class="bubble ai">မင်္ဂလာပါ! ကျွန်တော် <b>AI လုပ်ငန်းကူ</b> ပါ။ "ဒီနေ့ရောင်းအားတွက်ပေး" ဒါမှမဟုတ် "မောင်အောင်ကို ၅၀,၀၀၀ အကြွေးထည့်" စသည်ဖြင့် မြန်မာလိုပဲ ရိုက်ထည့် ဒါမှမဟုတ် အသံဖြင့် မေးနိုင်ပါတယ်။</div>
+    </div>
+  </div>
+
+  <div class="chat-input-bar">
+    <button class="mic" id="micBtn" title="အသံဖြင့်မေးရန်">🎤</button>
+    <input type="text" id="chatInput" placeholder="မြန်မာလိုရေးပါ...">
+    <button id="sendBtn" title="ပို့ရန်">➤</button>
+  </div>
+</div>
+
+<script src="db.js"></script>
+<script src="utils.js"></script>
+<script src="ai.js"></script>
+</body>
+</html>

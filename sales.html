@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F3D3E">
+<title>ရောင်းအား — မြန်မာလုပ်ငန်းကူ AI</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="page">
+    <div class="tabs">
+      <button class="active" data-tab="today">ယနေ့</button>
+      <button data-tab="week">ဒီအပတ်</button>
+      <button data-tab="all">အားလုံး</button>
+    </div>
+
+    <div class="card">
+      <div class="flex-between">
+        <div>
+          <div class="small muted">စုစုပေါင်း ရောင်းအား</div>
+          <div style="font-size:22px;font-weight:800;font-family:var(--font-num);color:var(--ink-teal);" id="periodTotal">0 ကျပ်</div>
+        </div>
+        <button class="btn btn-primary" id="newSaleBtn">+ ရောင်းအားအသစ်</button>
+      </div>
+    </div>
+
+    <div class="section-title"><span>🧾 ရောင်းအားမှတ်တမ်း</span></div>
+    <div class="card" id="salesList"></div>
+  </div>
+
+  <a href="#" class="fab" id="fabAdd" title="ရောင်းအားထည့်ရန်">+</a>
+</div>
+
+<!-- New sale sheet -->
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="saleSheet" style="display:none;">
+  <div class="handle"></div>
+  <div class="sheet-title">ရောင်းအားအသစ် ထည့်ရန်</div>
+
+  <div class="field">
+    <label>ပစ္စည်း ရွေးပါ</label>
+    <select id="itemPicker">
+      <option value="">-- ပစ္စည်းစာရင်းမှ ရွေးပါ --</option>
+    </select>
+  </div>
+
+  <div style="display:flex; gap:8px;">
+    <div class="field" style="flex:1;">
+      <label>အရေအတွက်</label>
+      <input type="number" id="pickQty" min="1" value="1">
+    </div>
+    <div class="field" style="flex:1;">
+      <label>ဈေးနှုန်း (တစ်ခု)</label>
+      <input type="number" id="pickPrice" min="0" placeholder="0">
+    </div>
+  </div>
+  <button class="btn btn-outline btn-block" id="addLineBtn">စာရင်းသို့ ထည့်ရန် +</button>
+
+  <div class="stitch mt-16" style="margin-bottom:14px;"></div>
+
+  <div id="cartList"></div>
+
+  <div class="flex-between mt-16">
+    <span style="font-weight:700;">စုစုပေါင်း</span>
+    <span style="font-size:20px;font-weight:800;font-family:var(--font-num);color:var(--ink-teal);" id="cartTotal">0 ကျပ်</span>
+  </div>
+
+  <div class="field mt-12">
+    <label>မှတ်ချက် (မဖြစ်မနေ မလို)</label>
+    <input type="text" id="saleNote" placeholder="ဥပမာ — မောင်အောင်ကို ရောင်းသည်">
+  </div>
+
+  <div class="flex gap-8 mt-12">
+    <button class="btn btn-outline grow" id="cancelSaleBtn">ပယ်ဖျက်မည်</button>
+    <button class="btn btn-primary grow" id="saveSaleBtn">သိမ်းဆည်းမည်</button>
+  </div>
+</div>
+
+<!-- Invoice view sheet -->
+<div class="sheet" id="invoiceSheet" style="display:none;">
+  <div class="handle"></div>
+  <div class="sheet-title">ဘောင်ချာ (Invoice)</div>
+  <div id="invoiceBody"></div>
+  <div class="flex gap-8 mt-16">
+    <button class="btn btn-outline grow" id="printInvoiceBtn">Print / PDF</button>
+    <button class="btn btn-danger" id="deleteSaleBtn">ဖျက်မည်</button>
+  </div>
+  <button class="btn btn-primary btn-block mt-12" id="closeInvoiceBtn">ပိတ်မည်</button>
+</div>
+
+<script src="db.js"></script>
+<script src="utils.js"></script>
+<script src="sales.js"></script>
+</body>
+</html>

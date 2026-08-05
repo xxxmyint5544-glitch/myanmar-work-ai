@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F3D3E">
+<title>အကြွေးစာရင်း — မြန်မာလုပ်ငန်းကူ AI</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="page">
+    <div class="tabs">
+      <button class="active" data-dir="receivable">ရရန် (Customer)</button>
+      <button data-dir="payable">ပေးရန် (Supplier)</button>
+    </div>
+
+    <div class="card">
+      <div class="small muted" id="totalLabel">စုစုပေါင်း ရရန်ငွေ</div>
+      <div style="font-size:22px;font-weight:800;font-family:var(--font-num);color:var(--ink-teal);" id="dirTotal">0 ကျပ်</div>
+    </div>
+
+    <div class="section-title"><span>🤝 အကြွေးစာရင်း</span></div>
+    <div class="card" id="creditList"></div>
+  </div>
+
+  <a href="#" class="fab" id="fabAdd" title="အကြွေးအသစ်ထည့်ရန်">+</a>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<div class="sheet" id="creditSheet" style="display:none;">
+  <div class="handle"></div>
+  <div class="sheet-title" id="creditSheetTitle">အကြွေးအသစ် ထည့်ရန်</div>
+  <input type="hidden" id="creditId">
+  <input type="hidden" id="creditDirection" value="receivable">
+
+  <div class="field">
+    <label>နာမည် (Customer / Supplier)</label>
+    <input type="text" id="creditPerson" placeholder="ဥပမာ — မောင်အောင်">
+  </div>
+  <div style="display:flex;gap:8px;">
+    <div class="field" style="flex:1;">
+      <label>ပမာဏ</label>
+      <input type="number" id="creditAmount" min="0" placeholder="0">
+    </div>
+    <div class="field" style="flex:1;">
+      <label>ပေးရမည့်ရက် (မလို)</label>
+      <input type="date" id="creditDueDate">
+    </div>
+  </div>
+  <div class="field">
+    <label>မှတ်ချက်</label>
+    <input type="text" id="creditNote" placeholder="ဥပမာ — ဆန်အိတ် ၂ အိတ် အကြွေး">
+  </div>
+
+  <div class="flex gap-8 mt-12">
+    <button class="btn btn-outline grow" id="cancelCreditBtn">ပယ်ဖျက်မည်</button>
+    <button class="btn btn-primary grow" id="saveCreditBtn">သိမ်းဆည်းမည်</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay2"></div>
+<div class="sheet" id="detailSheet" style="display:none;">
+  <div class="handle"></div>
+  <div class="sheet-title" id="detailName">—</div>
+  <div id="detailBody"></div>
+
+  <div class="field mt-12">
+    <label>ပေးချေငွေ ထည့်ရန်</label>
+    <div class="flex gap-8">
+      <input type="number" id="paymentAmount" min="0" placeholder="0" style="flex:1;">
+      <button class="btn btn-gold" id="applyPaymentBtn">ထည့်မည်</button>
+    </div>
+  </div>
+
+  <div class="flex gap-8 mt-16">
+    <button class="btn btn-outline grow" id="closeDetailBtn">ပိတ်မည်</button>
+    <button class="btn btn-danger" id="deleteCreditBtn">ဖျက်မည်</button>
+  </div>
+</div>
+
+<script src="db.js"></script>
+<script src="utils.js"></script>
+<script src="credit.js"></script>
+</body>
+</html>

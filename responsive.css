@@ -1,0 +1,45 @@
+/* Mobile-first base lives in style.css. This file widens the canvas
+   gracefully for tablets/desktops without abandoning the phone-app feel. */
+
+@media (min-width: 560px) {
+  .app {
+    max-width: 480px;
+    margin: 24px auto;
+    min-height: calc(100vh - 48px);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(15,61,62,0.18);
+  }
+  .bottom-nav, .chat-input-bar, .fab { max-width: 480px; }
+  body { background: var(--ink-teal-deep); }
+  [data-theme="dark"] body { background: #0A0E0E; }
+}
+
+@media (min-width: 900px) {
+  .app { max-width: 520px; }
+  .bottom-nav, .chat-input-bar, .fab { max-width: 520px; }
+}
+
+/* Small phones */
+@media (max-width: 340px) {
+  .ledger .amount { font-size: 25px; }
+  .stat .v { font-size: 16.5px; }
+  .btn { font-size: 14px; padding: 12px 14px; }
+}
+
+/* Landscape phones — keep nav reachable, shrink hero */
+@media (max-height: 480px) and (orientation: landscape) {
+  .ledger { padding: 14px; }
+  .ledger .amount { font-size: 22px; }
+  .ledger-grid { margin-top: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
+}
+
+@media print {
+  .bottom-nav, .topbar, .fab, .chat-input-bar, .overlay { display: none !important; }
+  .app { box-shadow: none; max-width: 100%; padding-bottom: 0; }
+  body { background: #fff; }
+}

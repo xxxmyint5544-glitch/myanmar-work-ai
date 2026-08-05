@@ -1,0 +1,27 @@
+{
+  "name": "မြန်မာလုပ်ငန်းကူ AI",
+  "short_name": "လုပ်ငန်းကူ",
+  "description": "ဆိုင်နှင့် အသေးစားလုပ်ငန်းများအတွက် AI လုပ်ငန်းကူ app",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FBF7EF",
+  "theme_color": "#0F3D3E",
+  "lang": "my",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
